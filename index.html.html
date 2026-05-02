@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matsuri — Carta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Shippori+Mincho:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --ink: #1a1208;
+    --ink-light: #4a3f2f;
+    --ink-muted: #8a7d6e;
+    --paper: #faf8f3;
+    --paper-warm: #f5f0e8;
+    --paper-card: #fffefb;
+    --accent: #8b1a1a;
+    --accent-gold: #b8860b;
+    --accent-gold-light: #e8d5a0;
+    --divider: #d4c9b0;
+    --red-deep: #6b0f0f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  .hero {
+    background: var(--red-deep);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 39px,
+      rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+    ),
+    repeating-linear-gradient(
+      90deg, transparent, transparent 39px,
+      rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+    );
+    pointer-events: none;
+  }
+
+  .hero-kanji {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 3.5rem;
+    font-weight: 300;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 0.5em;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+  }
+
+  .hero-logo {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 3rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.15em;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .hero-tagline {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+
+  .hero-line {
+    width: 60px;
+    height: 1px;
+    background: rgba(255,255,255,0.3);
+    margin: 1.2rem auto 0;
+  }
+
+  /* NAV TABS */
+  .nav-wrap {
+    background: var(--paper-warm);
+    border-bottom: 1px solid var(--divider);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .nav-wrap::-webkit-scrollbar { display: none; }
+
+  .nav-tabs {
+    display: flex;
+    padding: 0 1rem;
+    min-width: max-content;
+  }
+
+  .nav-tab {
+    padding: 0.9rem 1.1rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--ink-muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+  .nav-tab.active {
+    color: #8b2200;
+    border-bottom-color: #8b2200;
+  }
+  .nav-tab:hover { color: var(--ink); }
+
+  /* CONTENT */
+  .content {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CATEGORY HEADER */
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0 1.2rem;
+  }
+  .category-header:first-child { margin-top: 0; }
+
+  .category-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .category-line {
+    flex: 1;
+    height: 1px;
+    background: var(--divider);
+  }
+
+  /* DISH ROW */
+  .dish {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid rgba(212,201,176,0.4);
+    gap: 1rem;
+  }
+  .dish:last-child { border-bottom: none; }
+
+  .dish-info { flex: 1; }
+
+  .dish-name {
+    font-size: 0.93rem;
+    color: var(--ink);
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  .dish-desc {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    margin-top: 0.15rem;
+    line-height: 1.4;
+    font-style: italic;
+  }
+
+  .dish-price {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.9rem;
+    color: #8b2200;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* MENUS ESPECIALES */
+  .menu-card {
+    background: var(--paper-card);
+    border: 1px solid var(--divider);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
+  }
+  .menu-card-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+  }
+  .menu-card-price {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.4rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+  }
+  .menu-card-price span {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    margin-left: 0.3rem;
+  }
+  .menu-card-items {
+    list-style: none;
+    font-size: 0.82rem;
+    color: var(--ink-light);
+    line-height: 2;
+  }
+  .menu-card-items li::before {
+    content: '—';
+    color: var(--accent-gold);
+    margin-right: 0.5rem;
+  }
+
+  /* QR SECTION */
+  .qr-section {
+    background: var(--red-deep);
+    color: #fff;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    margin-top: 3rem;
+  }
+  .qr-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.3rem;
+  }
+  .qr-subtitle {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  .qr-box {
+    background: #fff;
+    display: inline-block;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 1.2rem;
+  }
+  .qr-url {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.1em;
+    margin-top: 0.5rem;
+  }
+
+  /* FOOTER INFO */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
+
+  .info-block-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 0.5rem;
+  }
+  .info-block-text {
+    font-size: 0.85rem;
+    color: var(--ink);
+    line-height: 1.8;
+  }
+  .info-block-text a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .brand-bottom {
+    text-align: center;
+    padding: 2rem 0 1rem;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.3em;
+  }
+
+  /* Animaciones suaves */
+  .section.active .dish {
+    animation: fadeUp 0.3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAyAAAAFeCAYAAAB9x3vwAAAX4UlEQVR4nO3dWbLbOrIFUOnFnavH5NGqPvwUlnXUsEGTiVwron7qho8AEARzCyR1uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5VxnNwB6ud1uvz/99+v1+mtUWwAA+EMAYTnfgsczQQQAYBwBhCXsDR3PhBAAgDEEENI7Gz4eCSIAAH393+wGwBktw0ePvwcAwL/sgJBS76BgJwQAoA87IKQzYpfCTggAQB8CCKmMDAZCCABAewIIacwIBEIIAEBb/81uAHwjBAAArMMOCKFFCB8R2gAAsApvwQpka6Fb5Q1N0Qr/KuMOANCTADJBr8J6pQI5Wvi4XNYaXwCAWQSQQUYW1NkL5Yjh4y772AIAzCaAdBShkM5WMEcYs0+yjScAQDQCSGMRC+gsRXPEsXuWZSwBAKISQBpRPJ+TYfwul9hjCACQgdfwnnS73X5nKZ6jtjNquwAAaE8AOSFj4RytzdHaAwBAX27BOmCFojnCrUTZxjHCmAEAZGcHZKdsRXNU2cZR+AAAaOO/2Q3IIlvBHFmmsRQ8AADacgvWBpkK5i1mFtVZxlLwAADoww4Iw0QPH0IHAEB/Akgxiux/GQ8AgLEEELqbvfMxOmTcbrffgg0AwGueAflidvHc0qyieMQYRij4X/UzQrsAACKxA0I3LYNH5EL+Uz/v/y1y+wEARhJAishUAGdq69aQJYgAAPwhgPBRz9unMhfjR8fF8yEAQHV+Cb2AIwXv7Xb7LXy8dnZcVnquCABgLw+hb5C5YNxb6I/ua7Yg0np8svUfAOAsOyALy1Dc9t5paaVXOzP0HQCgJQFkUUfDx8xX9UYtxnu3K2q/AQB6EED44Xq9/lr5N0P2GNWeaP0GAOhFANkgw61Mj1q1t3oIidIOAICVCCCLaR0aqoaQGZ8/u88AACMIIBtl2AXp1cZqIWRmEBBCAIDVCSBsUiGERHkQPkIbAAB6EUB2iLwLMqJtsx5OH1GQK/oBAMYQQBYwOhSsFkIiho+IbQIAaEEA2SnaLsis9kQbh6MU+gAAYwkgB6xSfJ81ehxahwXhAwBgPAHkoAghJEIbRmsRGqI8bA4AUJEAcsLMABAlfERpx1ZZgke2cQUA2EoAOUmhmOdWrCzhAwBgZQJIAxXeQvVNxDY9yhQ+oo8lAMAZAkgjisaxY7A1UHjeAwAgluvsBqxmRLEbPeyMLPjfjUXG0BH9uAIAtPDf7Aas5l5E9iqAFamfZQwel4vjCgDU4RYsmptxK1bmW62EDwCgErdgddS6IM5WqGYNBCNkO5YAAK0IIJ30KL4zFq1CyF8Zjx8AQGueAaGr6/X6a8UQIkwAABwjgCSh4G3HWAIAzCOA0N3MXRBhAwAgFm/B6mDFW47OEgQAALhcBJAUVineV+kHAADHCSAszW4UAEAsAkhj1X/745vV+gMAwD4CCMONDiF2QQAA4hBAKEEIAQCIQQAJbOXblVbuGwAA7wkgTONWLACAegSQhhS48TlGAABzXWc3oJd3hWbPb91bFreVblGaEQoqjS8AQCTLBJAjRWzrIlQAOU4IAQCoofQtWLfb7XfEW3IqFsYV+wwAUFHpAHLXIohEDDJ85pgBAIwngDyIuiNSxYxdEMcbAGAsAeSFmUVp9VuRhBAAgLUJIG/sKUoVsPk5hgAAYwggHyhKa3G8AQD6WyaA9Lp1Z2RRWv32q7uZ4yCEAAD0tUwA6elTUapg7UMIAQBYkwCyUe+i1O7HT0IIAMB6BJAdnotSReraHF8AgPaWCiAjvjFXlI41e2fIb8MAALT13+wGZNS6IJ1dZAMAwChL7YCwpggBzS4IAEAbywWQCMXqHtnaW5nbsQAAzlsugLCmSEFNCAEAOG7JABKpWGVNQggAwDFLBpAsBKV9oo2XEAIAsJ8AAicIIQAA+ywbQKJ9W/4sevvYTggBANhu2QACI3lDFgDANksHkKi7DFHbxXlCCADAZ0sHENaSpbi3GwIA8N7yAcRuwxoyFvQZ2wwA0NvyAeRyiRVCIrWF/uyGAAD86zq7ASNFKASjBpDnsYnUzgjHrYVIYwoAMIsAMlDEAnTrmMxo++zj1UPEOQAAMFKJW7DuFH/H3W8lGhUKVgwfl8u6/QIA2KrUDsjdrCIwWgBqMQ6t+1SpQI82HwAARigZQC6X8YVutGJzVP+/9btS4Hgl2rwAAOitbAC5XMYWvxELzerFfyQR5wcAQA+lA8hd70L8bHG5pX1HPkMAiUUIAQAqEEAe9CrIR4WDvZ8jgMQjhMR1P1+yH6NX5332Pn3zba1bvf+8duYaaM7AOQLIgx4F+ZZFqvXn7lkYhZCYXNzm6LXbGEmFPj7LEECqrsUjxj7Sl4tbrHKORnnN/4hzK8PxeGXmXPuvxx/lvREnwu12+531ZOAPx3C8redm5mNTscjd0ufMxzS7XmPvWstIkX/MOSoBpLNZF3wLY36r3PIDMErFkE08Asl3pX6IkJ+cFPG5oNJCxXm0p88Vx2clI38oF/YyP38SQP7fihNjxT5VZfGKZfVjsXr/WIe1kUzM1b8EEEjE4sURFefNkT5XHKfMHC8yEpr/EEAuay9iK/etKotXe4pVyMX5F59bvD+rPocFECwSSVVfvOCdM+eG8yq+nsfI9ZCRKq835d+CNfL94JUnGn1429lcGcb/6LqToW8rGTXWe+bDisd/S59W7DffjfrR6Fd/o+KcKx9Aeng3kR7//5FhpOrkrsLreoHWoq4nR66dUftCfs9zyxc+2wkgk9wnml2RzxcH47NdxQWshbNzLPK4Vzx/fCO5rr3H1jFkNLXddqWfAekxQfYseNUn6PV6/fVtvFxA9qk+pwAuF9cO5tpS3zyrdv0uHUBa2zvZIi2Qo9sSqe+r8ZYsLpd6F7PLZVuft649q45f1rW3+rMr5GQuvlc2gES4uERoA+syv8Yx1jkoBtbnGJNZpWtJ2QDSmkVvO2M1jt2QmlrtBGSaOz2+Ic/U/5VtPQ6uLURkXr5WMoBUu6hEmvyR2lJJtTm/lVt26rD2ALNYf34qGUBaM7HIwG4Id6utWT3ntXMGoL1yASTKxWRUO1YrNFq6v6Wi2hhFOQcyuM+NTLsgEdqQQbXzHiCScgGkNRex7SKN1XNbIrVtBLsha9p7S9kK877lbXRnPgPgk0xfZI1QKoC0PqjRL97R27dFlRNxFuO73Qrn0xErz5GqxxRgtjIBZOWL6CtHLqxVLsbv+lml/8+q7ob06nPksVxtjo/Y/QCgvTIBpLUzF7XeBYoL7nt+ef29yIXzDK/mQuT54fgd47YIgPFKBJAqF46KD1TTVpVzpbeI41hxbajY58oinnewV5V1q0QAaS3i5IjYprNmPbOz4lju4SL+WcT5ceaYRezPFi3nqV0QgLGWDyDRHjzvcQHLWkBEVn1MFVrnRRrDivO5Yp+Jdd4B7y0fQFbmlqvtPJS/38oX8rN9qzY3os2FmV/kRBuLCvaeb44REZmX/1o6gKy6+5ExeGS9gGQb59aiHIfRWh33EeNX9RjBJ84LiG3ZABJt8WkZPlr8nUqM2TnRziX2WW3+e/UuW1V9xTh5VVq7lg0grc1+7W7GXY+jZjxc+u1vVBn7d1zEf4pwy47j0laEY8prs6/BcIY5+NOSAcSBzita+IDMWp4DEdZVux8cZTeET3quG1vnXbW1a7kAEu0tUy0edq0yKVsfu2jPAGW3ysV7lZC7Sj+isQsSV4t5Kogwkrn23nIBpDUX5jGynKTmw/p6HOMZ83u1uWr3g8ul7Qsislx3WF/FtWupABJpMbG4bdf7HvkeOyEVF4vLJdY5FkXVubAyuyCxtb610HGkB/Pqs2UCSLRbr/hu5MLfK4i0/HtZWFSPaTlu3/5WxblZsc+VtT7eggit7J1LVdeuJQJItEWjdaGxwsL42I+Z/Wn92VUXjqx6zbsq82DmeTv6M+2CxNfrdknHtJ5Wx3zv36ly7XhliQDSw9FJMeJ2IovjeULIOebgPELUT5nbzjm9bom1xrHHkdqs+rqVPoBEuvVq5ILVK4xUOiGEEJ6dOY5b/u2INWK1uZihEMzQxtX1CCK+8GOLI3NktXX6iNQBpGr4iPTZ/FX54XS2O3O+OtfHcj7nYzeEI47Mm6O7HtaVP9IGkEgLQoS2RGgDf1hcYqpwjqw29zK9erfC/MriXuR5Wxatnbn7JMpaFUXKABLpHmgLUl49F4MK33KY+z9F+DXd3qK0A7boEURa/S3qWL0eOOK/2Q2IYu/ksAjlNmoxuF6vv8yVHEZeIG632+/Wn9fi70War1vbEaW9l0uf40obLee248we5spr6XZAIlxsIrSB40YvBhV2Q/jLsYaYWq7F6oCarO/tpAogEW69irroOCm2mTlOqwWRlfoyw561pNoPD0ZdZ7fI3PYqVluLOa/nDwdaE15LE0AiHMAIbeCYSBecxwcko7Rpj6ztHsn4QHxn1zI1QV1CyHkpngHpeeD82m1/9zGO/GvGM31q4+x5l2H8tpg9ju9suZe82u4HjDbzGkVee58r8uzQv8IHkAgLQoQ2rODxxOs9pquc5L2/nVtlnM7qMQ6RHuhureeFdIUxU2jkdOScdaxrE0KOCx1AIhSpGS6GGSfzc5uPjnPGvo9ibHL4dEGatWuYYd2DHsx/9jJnjgkdQHpSnI2xdZwdD9hvtfMm+q6dbzqBV/aEEGvDH2EfQo/w3EcGK/UFVuP8XIsXMNSw9zj79pvLZY03qo4UMoBECh8uNpBbhoX+VRujP3zeelyj734ckWHuQS/m/2fVxydcAIkUPs7+u96itgv4y5v21mPtrcFxZi+v590uVACJfCAsRPsZMzKIOE9n736MHpMVdz/uIl/XgPmqrhFhAkiEN15t+RtRLoI92xGlj7AK59R6HFNmWqVoXfE8OlIrrnI89wgTQHpqPcFnnzCzPx+yyLao326339nafFaF/lboI/AvIeSzEAEk4nMfs/5u1M/dK0s7YZRW50TFc6tin4F6KoWQ6QEkY/gY9fdnfx6szjl1ztn1O/vF1vyhhxVeXBG5bSMdWSOqjN3UAJI5fDx+zojPynShy9RWyGTkuRXlPI7SjrOqFBXAv1ZZw1qb9kvoK4SP58/s1afV+nPE2bZYAOqJNH/vop1XM60yDo4pHFPpurx3najwa+lTdkBWCx89ZetPj/a2mC/3h3sf/9eibTBKtrWghdX6bN3JZevx6jFPM9+GFbFNERx5KH3lsRweQFYOH6u9bWt1wggzOK+BllzD8rD+/zU0gKwcPlqL0J+9bYi6+wH0c+QcXe2HB/e0dfaaNvvzszBOx8zcNcrC63n/mP4WrBaiTORWkyRKfy6X7W1p3WY7E/QW6Tz7JlNbIbs9154oPwoc4Zo5+/MzEUIGBpCVHtDuKVt/erwFbMaJtuLJXVn045nlPLeruV2mXRBe21vERzyPZ82t7OM2Q/UQMiSA9Bi0Ua+/3arFW5oi9efRu7YpTqC/qOtCTxX7zDwRdg/eif47EpHHLoPKIaR7AOkVPlr/zTPO9DFy8Hh2b2uvNq90YsE3Wc77Lbaeu6uf43ZBcjlTPEf/TZ4RweDI319p3ZtllbVj2u+AHLXS5F2pL2escjLBXvc14N05UHGNqNhn+mt5ncn021z3f9OqzWe/cG3RhtUcObYr/E5ItwBSYefjcjnez4h9GU3woIeMb1iK1p4enO/sZc608zyWo39npMIad0bFEJJmByTzID9apR9nuKgAr6ywPu4pJLIXENXMPlbfdkz3GHkdnj1uWVQLIV2eAWm91Rl1cPf2M2o/RvGwGuTTYt1y3pNdpOt3pLZ8Erl+iyr6Swdaah5Ast9nuZXwsZ3gAetzjv/lYfS1RLx+R2zTo+jtiyzCj0CPEPIWrOiDefRBsOj9aslFFdij0vpIfBnm49EH03vLMHbRbT22mce6aQBpcSJkHsxvWr+NIpqICyG1rL5gk8eWAsJcjCfbMXlsb4RrcLbxi+zbGpJ9rJsFkBY/xNeqLT31ePgrS99fibDgtZD5GPBX1G8EV/ft/PG64X9V6290qxyPlg+pH/lc2nt1TVtlvK+t/lCF19FWf2vEyoVdxPGmrdV3IHt7PP/PjuGqF9RXWo5bRVVe6d9D72t2lXGMYMXrV5MAUiF8XC5zC/BZY7Vy6HiUbS7CCio8G1ehj+RRpV4jvuEBJOskjlSI9xrDqH0c0a6s8xIAIJthb8HKXOBFKswvl3Zb+tH6dbnMmSeZ5yYAQDZdA8gKhV3EIv3RnvsCI/dlhbkCAMB3TQKI4nG+zPcZZ203AAD7Nf8l9JVE3jF4JVt7r9frr9nhY/bnAwBUI4C8ka2Yv8vSboU/AEBNAsiCXoWQKMEkwq7HXZR2AABUIoC8EKVYX42CHwAAAYQhjoYPYRAAYC3DfgckCwVvW1F3PaK2CwBgdXZABov0DERvVfoJAMB2dkAGUYzH4VgAAMwjgHRUtdBt1W+3wwEArEcAaaxq6MjC8QEAmEsAOSliQTu7Tfedi9ntAAAgHgHkyb1ofnX7j4J6n9vt9jvSmEVqCwBAVQLIG4rVNqKFEAAA5vIa3gmqPVx9u91+7+1z6zESggAAYhBAGKZa8AIA4CcBhKGO7IYAALAOAaSIaLcgjQwi0foOAFCZh9AL+fSGr1kitQUAgP7sgCxmy7f9dgQAAJhFACnqer3+qhBEKvQRACATAaS4KkEEAIAYBJDBoj7zIIgAADCCAMI/Vgoiq/QDAGAlAggvrRREAACIQwBZSI/AIIgAANCSAMImQggAAC0IIGxmNwQAgLMEEHYTRAAAOEoAWcSMQCCEAACwlwAyUNTfADnDbggAAHsIIAAAwDACCE3YBQEAYAsBZAFRiv8o7bhb8ZY3AIDsBBCaihZCAACIRQChuUghxC4IAEAsAsggvQrhSMV+VEIIAEAcAghdCEYAALwigFCCXRAAgBgEELqIWPBHbBMAQDUCyADVnv+IXOhHbhsAQAUCCE1lKPAztBEAYFUCCM1kKuxvt9vvTO0FAFjFdXYDVlfh9qvshXyksQQAWN1/sxtAXtmDx929H4IIAEB/bsFKanbxP/vze1ixTwAA0bgFq6NRBe2ob+4rFeh2QwAA+hBAOhpdsPcomiuFjlcEEQCAtgSQjmYX70eK59ltjkoQAQBoQwDpRCG/HiEEAOA8AaQD4WNtgggAwHHeggU7+RFDAIDjBJDGFKbtRN9pEEQAAPZzC1ZjPQvSVwX5agVw1j5GD0sAAFEIIG8c+XXs3oXylrZkKNafbR3jDH0TRAAAPhNAnnwqcj8VlxHCxzsRC/ej/YnYl2dCCADAewLIk60F7mOROaIo7lnU9mp/xja3JIgAAPwkgDyJWtgqZl+LerzuHDcAgH95C9aTiAVjxDZFEX1sogckAIDRBBDSyxBCBBEAgD8EkOCiF9dRZBgnIQQAQAB5KUMxy08ZjpsQAgBUJ4AElqGgjibDmAkhAEBlAkhQGQrpqDKMnRACAFQlgLyRoYjlvev1+ssxBACIRwAJSOHcTuSxtAsCAFQkgHwwo3iNXDBnZUwBAOIQQCghagixCwIAVCOAfDGycI1aJK8i6vgKIQBAJQJIEFGL49UYZwCAua6zG5BJj2+qFcRzRNt1MA8AgCrsgFCSgh8AYA47IAe0+PZcARxDpJ0QcwIAqMAOyAFnCkU/kBeLYwEAMJYdkJO2foOu0I1v9m6IOQIAVCCAwIOZIUQAAQAqcAsWPBACAAD6EkDgiRACANCPAAIveFkAAEAfAgh8IIgAALQlgMAGQggAQBveggU79XhTloADAFRhBwR2clsWAMBxdkCggbO7IgINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAPv8DcgKVtF6Di18AAAAASUVORK5CYII=" alt="Matsuri" style="height:70px; margin-bottom:0.8rem; display:block; margin-left:auto; margin-right:auto; mix-blend-mode: lighten;">
+  <div class="hero-tagline">Cocina Asiática · Teppanyaki & Wok</div>
+  <div class="hero-line"></div>
+</div>
+
+<div class="nav-wrap">
+  <div class="nav-tabs" id="navTabs">
+    <button class="nav-tab active" data-section="carta">La Carta</button>
+    <button class="nav-tab" data-section="postres">Postres</button>
+    <button class="nav-tab" data-section="menus">Menús</button>
+    <button class="nav-tab" data-section="bebidas">Bebidas</button>
+    <button class="nav-tab" data-section="info">Info & QR</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- CARTA -->
+  <div class="section active" id="carta">
+
+    <div class="category-header">
+      <div class="category-name">Entradas</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Ensalada Matsuri con salmón</div></div><div class="dish-price">10,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Ensalada de wakame</div></div><div class="dish-price">8,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Edamame, habas de soja</div></div><div class="dish-price">6,95 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Rollitos de primavera vegetales (2)</div></div><div class="dish-price">5,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Nem, rollitos vietnamitas fritos (4)</div></div><div class="dish-price">7,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Rollitos de gambas (4)</div></div><div class="dish-price">6,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tartar de salmón</div></div><div class="dish-price">15,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tartar de atún</div></div><div class="dish-price">17,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tataki de atún</div></div><div class="dish-price">17,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Alitas de pollo, crujientes y picantes (4)</div></div><div class="dish-price">10,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Langostinos fritos en pan rallado japonés (6)</div></div><div class="dish-price">11,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Crab Rangoon</div><div class="dish-desc">pasta rellena de queso y cangrejo</div></div><div class="dish-price">7,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Dim-Sum</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Bun de pato</div><div class="dish-desc">panecillo al vapor, pato asado, pepino y cebollino con salsa de mariscos</div></div><div class="dish-price">5,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Bun de langostinos</div><div class="dish-desc">panecillo al vapor con tempura de langostinos y salsa</div></div><div class="dish-price">4,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Dim-sum variado (4)</div></div><div class="dish-price">6,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Ja-Kao, empanadillas blancas de gambas (4)</div></div><div class="dish-price">6,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Siu-Mai, empanadillas de carne y gambas (4)</div></div><div class="dish-price">6,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Xiao Lon Bao</div><div class="dish-desc">bollitos esponjosos de carne y verduras (4)</div></div><div class="dish-price">6,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Gyoza, empanadilla de carne y verdura a la plancha (5)</div></div><div class="dish-price">6,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Sopas</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Sopa agripicante de verdura y carne</div></div><div class="dish-price">6,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Miso Shiru</div><div class="dish-desc">sopa japonesa de algas con langostinos y tofu</div></div><div class="dish-price">6,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tom Yam Kum</div><div class="dish-desc">sopa picante Thai de langostinos</div></div><div class="dish-price">7,50 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Sushi</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Sushi variado (7 unidades)</div></div><div class="dish-price">13,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Sushi atún / salmón / tako / dorada / pez mantequilla (2)</div></div><div class="dish-price">5,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Sushi anguila (2)</div></div><div class="dish-price">6,00 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Nigiri flambeado — salmón o pez mantequilla (2)</div></div><div class="dish-price">5,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Ikura, huevas de salmón</div></div><div class="dish-price">6,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tobiko, huevas de pez volador</div></div><div class="dish-price">5,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Mixto sushi y maki de atún y salmón (10)</div></div><div class="dish-price">14,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Mixto sushi, maki y california (16)</div></div><div class="dish-price">21,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Mixto sushi, sashimi salmón y atún, maki y california (26)</div></div><div class="dish-price">32,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Mixto sushi, sashimi y maki (30)</div></div><div class="dish-price">26,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Maki</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Sake Maki, rollito de salmón (6)</div></div><div class="dish-price">6,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tekka Maki, rollito de atún (6)</div></div><div class="dish-price">6,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Kappa Maki, rollito de pepino y aguacate (6)</div></div><div class="dish-price">5,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Maki de fruta — mango, piña (6)</div></div><div class="dish-price">5,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Maki roll variado (12)</div></div><div class="dish-price">11,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Futo Maki</div></div><div class="dish-price">14,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Temaki, cono de algas nori relleno (atún, salmón, unagi, langostinos)</div></div><div class="dish-price">6,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Green Maki</div><div class="dish-desc">rollito de salmón, atún y menta con aguacate y manzana</div></div><div class="dish-price">14,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">California Maki, rollito de california</div></div><div class="dish-price">16,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">California Maki vegetal</div></div><div class="dish-price">13,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Salmón Uramaki</div><div class="dish-desc">salmón y aguacate envuelto en salmón</div></div><div class="dish-price">17,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Crab Uramaki</div><div class="dish-desc">soft shell crab, rebozado y frito</div></div><div class="dish-price">18,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">City Roll</div><div class="dish-desc">salmón, surimi o atún con aguacate y queso Philadelphia envuelto en sésamo</div></div><div class="dish-price">16,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Mixto de maki y california (12)</div></div><div class="dish-price">16,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Sashimi</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Sashimi variado (20 piezas)</div></div><div class="dish-price">24,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Sashimi de salmón y atún (16 piezas)</div></div><div class="dish-price">25,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Tempura</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tempura de verduras variadas</div></div><div class="dish-price">13,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tempura mixta de mariscos y verduras</div></div><div class="dish-price">16,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Ebi, tempura de langostinos</div></div><div class="dish-price">15,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tempura de Maki Roll</div></div><div class="dish-price">15,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tempura de California Maki</div></div><div class="dish-price">18,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Teppanyaki</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Pollo Teppanyaki</div></div><div class="dish-price">15,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Solomillo Teppanyaki</div></div><div class="dish-price">19,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Pescado Teppanyaki</div><div class="dish-desc">dorada, lubina o salmón a elegir</div></div><div class="dish-price">15,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Espárragos con calabacín Teppanyaki</div></div><div class="dish-price">11,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Langostinos Teppanyaki</div></div><div class="dish-price">15,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Especialidad — Pato</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Pato laqueado pekinés (para 2 personas)</div><div class="dish-desc">en tres platos: crujiente piel con crepes, carne salteada con verduras y sopa de hueso de pato</div></div><div class="dish-price">43,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Pato laqueado pekinés (para 4 personas)</div></div><div class="dish-price">72,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Pato asado en salsa de piel de naranja</div></div><div class="dish-price">17,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Lonchas de pato asado cantonés</div></div><div class="dish-price">21,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Mariscos</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Wok de langostinos con espárragos y zanahoria</div></div><div class="dish-price">16,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Langostinos con sal y pimienta</div></div><div class="dish-price">17,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Langostinos con verduras en salsa curry rojo thai</div></div><div class="dish-price">16,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Langostinos con verdura en salsa mil sabores Cuaiwei</div></div><div class="dish-price">16,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Buey</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Lonchas de buey salteado con champiñones baby en salsa de ostras</div></div><div class="dish-price">11,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Lonchas de buey con verduras y guindillas thai</div></div><div class="dish-price">11,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Lonchas de buey con bambú y setas</div></div><div class="dish-price">12,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tiras de buey con cebolla roja a la plancha</div></div><div class="dish-price">14,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Lonchas de buey con trozos de piña y menta de curry rojo thai</div></div><div class="dish-price">14,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Pollo</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Dados de pollo con brócoli y zanahoria (soja)</div></div><div class="dish-price">10,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Dados de pollo con verduras y leche de coco al curry thai</div></div><div class="dish-price">13,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Dados de pollo salteado con anacardos y verduras</div></div><div class="dish-price">11,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tiras de pollo almendrado frito con salsa de frutas</div></div><div class="dish-price">12,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Filete de pollo frito en salsa de limón</div></div><div class="dish-price">11,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Dados de pollo con bambú y setas</div></div><div class="dish-price">13,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Verduras</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tofu con verduras</div></div><div class="dish-price">10,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Wok de verduras variadas salteadas</div></div><div class="dish-price">9,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Acompañantes y Arroces</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Arroz de jazmín blanco</div></div><div class="dish-price">3,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Arroz frito cantonés (jamón york)</div></div><div class="dish-price">9,25 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Teppanyaki de arroz con solomillo, langostinos y verduras</div></div><div class="dish-price">12,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Ku-Bak</div><div class="dish-desc">arroz crujiente y caldoso con langostinos y verduras</div></div><div class="dish-price">10,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Ramen japonés, tallarines salteados con gambas y verduras</div></div><div class="dish-price">10,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Udon, tallarines japoneses fritos con langostinos y verduras</div></div><div class="dish-price">10,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tallarines fritos Matsuri con carne, verduras y gambas</div></div><div class="dish-price">11,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Fideos de arroz Singapur con verduras y gambas (soja)</div></div><div class="dish-price">10,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Pad Thai</div><div class="dish-desc">tallarines blancos Thai con gambas, verduras y almendras picadas</div></div><div class="dish-price">10,80 €</div></div>
+
+  </div><!-- /carta -->
+
+  <!-- POSTRES -->
+  <div class="section" id="postres">
+
+    <div class="category-header" style="margin-top:0">
+      <div class="category-name">Postres</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Fruta</div><div class="dish-desc">piña, mango o naranja</div></div><div class="dish-price">5,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tarta Matsuri</div></div><div class="dish-price">6,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Plátano frito al caramelo chino</div></div><div class="dish-price">5,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tempura de helado</div></div><div class="dish-price">5,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Flan de té verde japonés</div></div><div class="dish-price">5,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Helado con nueces</div><div class="dish-desc">vainilla, fresa, chocolate, té verde, nata, limón, turrón, menta chocolate, dulce de leche</div></div><div class="dish-price">6,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Sorbete de limón al cava</div></div><div class="dish-price">5,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Trufa helada</div></div><div class="dish-price">4,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Flan con nata</div></div><div class="dish-price">5,00 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Nata con nueces</div></div><div class="dish-price">6,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tartas</div><div class="dish-desc">carrot cake, caramelo y galleta, queso con arándanos (no incluido menú)</div></div><div class="dish-price">5,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Copa Cookies</div><div class="dish-desc">no incluido menú</div></div><div class="dish-price">6,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Pistacho o crema</div><div class="dish-desc">no incluido menú</div></div><div class="dish-price">6,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Copa sorbete de mango</div><div class="dish-desc">no incluido menú</div></div><div class="dish-price">6,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Café e Infusiones</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Café</div></div><div class="dish-price">2,40 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Infusión</div></div><div class="dish-price">2,40 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Café irlandés</div><div class="dish-desc">no incluido en el menú</div></div><div class="dish-price">6,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Té verde japonés</div></div><div class="dish-price">2,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Té de jazmín</div></div><div class="dish-price">2,80 €</div></div>
+
+  </div>
+
+
+  <!-- MENÚS -->
+  <div class="section" id="menus">
+
+    <div class="category-header" style="margin-top:0">
+      <div class="category-name">Menú del Mediodía</div>
+      <div class="category-line"></div>
+    </div>
+    <p style="font-size:0.75rem; color:var(--ink-muted); margin-bottom:1.2rem;">De lunes a viernes al mediodía excepto festivos · Consumo en el local</p>
+
+    <div class="menu-card">
+      <div class="menu-card-title">Menú Asiático</div>
+      <div class="menu-card-price">15,25 €</div>
+      <div style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin-bottom:0.3rem;">Primer plato (a elegir)</div>
+      <ul class="menu-card-items">
+        <li>Ensalada Matsuri</li>
+        <li>Edamame, habas de soja</li>
+        <li>Nem, rollitos vietnamitas fritos (2)</li>
+        <li>Surtido de Dim-Sum (4)</li>
+        <li>Langostinos fritos (4)</li>
+        <li>Crab Rangoon, pasta rellena de queso y cangrejo (4)</li>
+        <li>Gyoza, empanadilla de pollo y verdura (4)</li>
+        <li>Sopa agripicante de verduras y carne 🌶</li>
+      </ul>
+      <div style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin:0.8rem 0 0.3rem;">Segundo plato (a elegir)</div>
+      <ul class="menu-card-items">
+        <li>Arroz frito cantonés</li>
+        <li>Fideos de arroz fritos con verduras y gambas</li>
+        <li>Tempura de verduras variadas</li>
+      </ul>
+      <div style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin:0.8rem 0 0.3rem;">Tercer plato (a elegir)</div>
+      <ul class="menu-card-items">
+        <li>Lonchas de pato asado cantonés</li>
+        <li>Lonchas de buey con verduras y guindillas 🌶</li>
+        <li>Dados de pollo con anacardos y verduras</li>
+        <li>Tiras de pollo almendrado fritas</li>
+        <li>Tiras de buey con cebolla roja</li>
+        <li>Filete de pollo frito en salsa de limón</li>
+        <li>Pollo crujiente rebozado</li>
+      </ul>
+      <div style="font-size:0.78rem; color:var(--ink-muted); margin-top:0.8rem; border-top:1px solid var(--divider); padding-top:0.8rem;">
+        Bebida y postre a elegir · Bebida: copa de vino, cerveza, refresco o agua<br>
+        Postre: tarta, fruta, flan, helado, nata con nueces, lichyes, café o té<br>
+        <strong style="color:var(--ink);">+1 € por cada envase para llevar</strong>
+      </div>
+    </div>
+
+    <div class="menu-card">
+      <div class="menu-card-title">Menú Japonés</div>
+      <div class="menu-card-price">17,50 €</div>
+      <div style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin-bottom:0.3rem;">Primer plato (a elegir)</div>
+      <ul class="menu-card-items">
+        <li>Ensalada Wakame</li>
+        <li>Nem, rollitos vietnamitas fritos (2)</li>
+        <li>Miso, sopa japonesa de algas con langostinos y tofu</li>
+        <li>Edamame, habas de soja</li>
+        <li>Kappa maki, pepino y aguacate (6)</li>
+      </ul>
+      <div style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin:0.8rem 0 0.3rem;">Segundo plato (a elegir)</div>
+      <ul class="menu-card-items">
+        <li>Sushi variado (5)</li>
+        <li>California de sésamo (5)</li>
+        <li>Tekka maki, salmón y atún (6)</li>
+        <li>Arroz frito cantonés</li>
+        <li>Pad Thai, tallarines blancos thai con gambas 🌶</li>
+      </ul>
+      <div style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin:0.8rem 0 0.3rem;">Tercer plato (a elegir)</div>
+      <ul class="menu-card-items">
+        <li>Teppanyaki de solomillo</li>
+        <li>Teppanyaki de pollo</li>
+        <li>Teppanyaki de salmón</li>
+        <li>Teppanyaki de espárragos y calabacín</li>
+        <li>Teppanyaki de langostinos</li>
+      </ul>
+      <div style="font-size:0.78rem; color:var(--ink-muted); margin-top:0.8rem; border-top:1px solid var(--divider); padding-top:0.8rem;">
+        Bebida y postre a elegir · Bebida: copa de vino, cerveza, refresco o agua<br>
+        Postre: tarta, fruta, flan, helado, nata con nueces, lichyes, café o té<br>
+        <strong style="color:var(--ink);">+1 € por cada envase para llevar</strong>
+      </div>
+    </div>
+
+    <div class="category-header">
+      <div class="category-name">Menús Degustación</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="menu-card">
+      <div class="menu-card-title">Menú Especial</div>
+      <div class="menu-card-price">26,80 € <span>por persona · mínimo 2 personas</span></div>
+      <ul class="menu-card-items">
+        <li>Gyoza de pollo y verduras (4)</li>
+        <li>Mixto de sushi y maki</li>
+        <li>Lonchas de pato asado cantonés</li>
+        <li>Arroz frito cantonés</li>
+      </ul>
+      <div style="font-size:0.78rem; color:var(--ink-muted); margin-top:0.8rem; border-top:1px solid var(--divider); padding-top:0.8rem;">Bebida y postre a elegir</div>
+    </div>
+
+    <div class="menu-card">
+      <div class="menu-card-title">Menú Teppanyaki</div>
+      <div class="menu-card-price">23,80 € <span>por persona · NO TAKE AWAY</span></div>
+      <div style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin-bottom:0.3rem;">Primer plato (a elegir)</div>
+      <ul class="menu-card-items">
+        <li>Ensalada Wakame</li>
+        <li>Langostinos fritos (4)</li>
+        <li>Nem, rollitos vietnamitas fritos (2)</li>
+        <li>Miso, sopa japonesa de algas con gambas y tofu</li>
+        <li>Gyoza de pollo y verduras (4)</li>
+      </ul>
+      <div style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin:0.8rem 0 0.3rem;">Segundo plato (a elegir)</div>
+      <ul class="menu-card-items">
+        <li>Mixto de sushi y maki (10)</li>
+        <li>Mixto de sushi y california (8)</li>
+        <li>Mixto de maki y california (10)</li>
+        <li>Arroz frito cantonés</li>
+        <li>Ramen salteado con verduras y gambas</li>
+        <li>Tempura de verduras fritas</li>
+      </ul>
+      <div style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin:0.8rem 0 0.3rem;">Tercer plato (a elegir)</div>
+      <ul class="menu-card-items">
+        <li>Teppanyaki de pollo</li>
+        <li>Teppanyaki de solomillo</li>
+        <li>Teppanyaki de langostinos</li>
+        <li>Teppanyaki de salmón</li>
+      </ul>
+      <div style="font-size:0.78rem; color:var(--ink-muted); margin-top:0.8rem; border-top:1px solid var(--divider); padding-top:0.8rem;">Bebida y postre a elegir · Bebida: copa de vino, cerveza, refresco o agua<br>Postre: tarta, fruta, flan, helado, café o té</div>
+    </div>
+
+    <div class="menu-card">
+      <div class="menu-card-title">Menú Matsuri</div>
+      <div class="menu-card-price">24,80 € <span>por persona · mínimo 2 personas</span></div>
+      <ul class="menu-card-items">
+        <li>Nem, rollitos vietnamitas</li>
+        <li>Dim-Sum variado</li>
+        <li>Arroz frito cantonés</li>
+        <li>Dados de pollo con anacardos y verduras</li>
+      </ul>
+      <div style="font-size:0.78rem; color:var(--ink-muted); margin-top:0.8rem; border-top:1px solid var(--divider); padding-top:0.8rem;">Bebida y postre a elegir</div>
+    </div>
+
+    <div class="menu-card">
+      <div class="menu-card-title">Menú Asia</div>
+      <div class="menu-card-price">29,80 € <span>por persona · mínimo 2 personas</span></div>
+      <ul class="menu-card-items">
+        <li>Rollitos vietnamitas</li>
+        <li>Mixto, sushi, sashimi y california</li>
+        <li>Langostinos teppanyaki</li>
+        <li>Solomillo teppanyaki</li>
+      </ul>
+      <div style="font-size:0.78rem; color:var(--ink-muted); margin-top:0.8rem; border-top:1px solid var(--divider); padding-top:0.8rem;">Bebida y postre a elegir</div>
+    </div>
+
+    <div class="menu-card">
+      <div class="menu-card-title">Menú Sushi</div>
+      <div class="menu-card-price">35,80 € <span>por persona · mínimo 2 personas</span></div>
+      <ul class="menu-card-items">
+        <li>Ensalada Wakame</li>
+        <li>Tartar de salmón 🌶</li>
+        <li>Mixto sushi, sashimi, maki y california (34 uds.)</li>
+      </ul>
+      <div style="font-size:0.78rem; color:var(--ink-muted); margin-top:0.8rem; border-top:1px solid var(--divider); padding-top:0.8rem;">Bebida y postre a elegir</div>
+    </div>
+
+  </div><!-- /menus -->
+
+  <!-- BEBIDAS -->
+  <div class="section" id="bebidas">
+
+    <div class="category-header" style="margin-top:0">
+      <div class="category-name">Vino Tinto</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div style="font-size:0.72rem; color:var(--ink-muted); text-align:right; margin-bottom:0.5rem; letter-spacing:0.1em;">3/8 · 3/4</div>
+
+    <p style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin-bottom:0.5rem;">Rioja</p>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Vino de la casa (crianza)</div></div><div class="dish-price">8,80 · 14,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Lan (crianza)</div></div><div class="dish-price">16,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Viña Izadi (crianza)</div></div><div class="dish-price">12,80 · 18,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Marqués de Cáceres (crianza)</div></div><div class="dish-price">18,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Muga (crianza)</div></div><div class="dish-price">28,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Viña Pomal (reserva)</div></div><div class="dish-price">22,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Marqués de Murrieta (reserva)</div></div><div class="dish-price">33,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Marqués de Riscal (reserva)</div></div><div class="dish-price">26,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Campillo (reserva)</div></div><div class="dish-price">28,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Viña Ardanza (reserva)</div></div><div class="dish-price">33,80 €</div></div>
+
+    <p style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin:1.2rem 0 0.5rem;">Ribera del Duero</p>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Haza</div></div><div class="dish-price">22,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Arzuaga</div></div><div class="dish-price">32,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Viña Mayor (crianza)</div></div><div class="dish-price">18,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Protos (crianza)</div></div><div class="dish-price">25,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Pesquera (crianza)</div></div><div class="dish-price">32,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Tarsus (reserva)</div></div><div class="dish-price">48,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Pago de los Capellanes</div></div><div class="dish-price">24,80 €</div></div>
+
+    <p style="font-size:0.8rem; font-weight:500; color:var(--ink-light); margin:1.2rem 0 0.5rem;">Otras denominaciones</p>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Enate crianza (Somontano)</div></div><div class="dish-price">19,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Viñas del Vero "Gran Vos" (Somontano)</div></div><div class="dish-price">35,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Dominio de Tares Cepas viejas (Bierzo)</div></div><div class="dish-price">24,50 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Vino Rosado</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Gran Feudo (Navarra)</div></div><div class="dish-price">13,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Mateus Rosé (Portugal)</div></div><div class="dish-price">12,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Peñascal (Valladolid)</div></div><div class="dish-price">12,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Enate (Somontano)</div></div><div class="dish-price">16,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Lambrusco (Italia)</div></div><div class="dish-price">13,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Protos</div></div><div class="dish-price">16,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Vino Blanco</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Barbadillo (Cádiz)</div></div><div class="dish-price">14,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Mantel Blanco (Rueda)</div></div><div class="dish-price">17,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Protos (Rueda)</div></div><div class="dish-price">17,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Viña Esmeralda (Penedés)</div></div><div class="dish-price">16,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Marqués de Riscal (Rueda)</div></div><div class="dish-price">19,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Martín Códax "Albariño" (Rías Baixas)</div></div><div class="dish-price">12,80 · 21,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Terras Gauda "Albariño" (Rías Baixas)</div></div><div class="dish-price">24,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Codello (Bierzo)</div></div><div class="dish-price">17,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Champagne y Cava</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Juve y Camps</div></div><div class="dish-price">25,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Juve y Camps Reserva</div></div><div class="dish-price">29,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Codorniu Anna</div></div><div class="dish-price">22,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Aguas y Refrescos</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Agua con / sin gas</div></div><div class="dish-price">2,65 · 3,35 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Refrescos</div></div><div class="dish-price">3,35 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Cerveza Heineken</div></div><div class="dish-price">3,35 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Cerveza china</div></div><div class="dish-price">3,65 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Cerveza japonesa</div></div><div class="dish-price">3,65 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Cerveza Mahou</div></div><div class="dish-price">3,35 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Caña (tubo · jarra)</div></div><div class="dish-price">3,25 · 3,95 €</div></div>
+
+
+    <div class="category-header">
+      <div class="category-name">Licores</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Sake</div></div><div class="dish-price">6,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Kao Liang</div></div><div class="dish-price">3,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Licor de flores</div></div><div class="dish-price">4,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Baileys</div></div><div class="dish-price">5,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Licor de frutas</div></div><div class="dish-price">4,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Vermouth</div></div><div class="dish-price">4,80 €</div></div>
+
+    <div class="category-header">
+      <div class="category-name">Brandies y Whisky</div>
+      <div class="category-line"></div>
+    </div>
+
+    <div class="dish"><div class="dish-info"><div class="dish-name">Magno</div></div><div class="dish-price">5,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Carlos III</div></div><div class="dish-price">5,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Carlos I</div></div><div class="dish-price">7,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Torres 10</div></div><div class="dish-price">5,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Remy Martin XO</div></div><div class="dish-price">11,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">J&B</div></div><div class="dish-price">5,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Johnnie Walker</div></div><div class="dish-price">6,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">DYC</div></div><div class="dish-price">5,20 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Cardhu</div></div><div class="dish-price">7,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Chivas</div></div><div class="dish-price">7,50 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Gin Tonic</div></div><div class="dish-price">8,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Gin Tonic Importación</div></div><div class="dish-price">10,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Cuba libre</div></div><div class="dish-price">8,80 €</div></div>
+    <div class="dish"><div class="dish-info"><div class="dish-name">Cuba libre Importación</div></div><div class="dish-price">10,80 €</div></div>
+
+  </div><!-- /bebidas -->
+
+  <!-- INFO & QR -->
+  <div class="section" id="info">
+
+    <div class="qr-section" style="margin-top:0; border-radius:4px;">
+      <div class="qr-title">Comparte esta carta</div>
+      <div class="qr-subtitle">Escanea para ver la carta completa</div>
+      <div class="qr-box" id="qrcode"></div>
+      <div class="qr-url">matsurimadrid.com</div>
+    </div>
+
+    <div class="info-grid" style="margin-top:2rem;">
+      <div>
+        <div class="info-block-title">Dirección</div>
+        <div class="info-block-text">
+          Calle López de Aranda, 38<br>
+          28027 Madrid
+        </div>
+      </div>
+      <div>
+        <div class="info-block-title">Teléfono</div>
+        <div class="info-block-text">
+          <a href="tel:+34917434398">+34 917 43 43 98</a>
+        </div>
+      </div>
+      <div>
+        <div class="info-block-title">Horario</div>
+        <div class="info-block-text" style="font-size:0.8rem;">
+          Lun — Jue: 12:30–16:30 · 20:00–23:30<br>
+          Vie — Sáb: 12:30–16:45 · 20:00–00:00<br>
+          Dom: 12:30–16:45
+        </div>
+      </div>
+      <div>
+        <div class="info-block-title">Reservas</div>
+        <div class="info-block-text">
+          <a href="https://matsurimadrid.com/reservas-2/">Reservar online</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /content -->
+
+<div class="brand-bottom">祭 MATSURI · MADRID</div>
+
+<script>
+const tabs = document.querySelectorAll('.nav-tab');
+const sections = document.querySelectorAll('.section');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    sections.forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.section).classList.add('active');
+  });
+});
+
+new QRCode(document.getElementById("qrcode"), {
+  text: "https://matsurimadrid.com/gastronomia-natural-food/la-carta/",
+  width: 160,
+  height: 160,
+  colorDark: "#6b0f0f",
+  colorLight: "#ffffff",
+  correctLevel: QRCode.CorrectLevel.M
+});
+</script>
+
+</body>
+</html>
